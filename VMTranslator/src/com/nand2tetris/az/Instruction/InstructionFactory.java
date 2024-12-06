@@ -10,18 +10,14 @@ public class InstructionFactory {
     private static final String[] arithmeticCommands = {"add", "sub", "neg", "eq", "gt", "lt", "and", "or", "not"};
     public static Instruction createInstruction(String line){
         //Remove Comment
-        line = line.split("//")[0];
-        String []keyWords = line.split(" ");
+        line = line.split("//")[0].trim();
+        String []keyWords = line.split("\\s+");
         String commandType = keyWords[0];
         boolean pushCommand = Objects.equals(commandType, "push");
         boolean popCommand = Objects.equals(commandType, "pop");
         if(popCommand || pushCommand){
-            if(keyWords.length != 3){
-                throw new WrongNumberOfArgumentsException(commandType, 2, keyWords.length-1);
-            }
-            if(!keyWords[2].matches("\\d+")){
-                throw new WrongTypeArgumentException(keyWords[2], "int");
-            }
+            checkNumberOfArguments(keyWords, commandType, 2);
+            checkArgumentType(keyWords, 2, "\\d+", "int");
             int number = Integer.parseInt(keyWords[2]);
             if(number < 0 || number > 32767){
                 throw new IntegerOverFlowException(keyWords[2]);
@@ -33,10 +29,45 @@ public class InstructionFactory {
                 return new PopInstruction(keyWords[1], number);
             }
         }
-        boolean arithmeticCommand = keyWords.length == 1 && Arrays.asList(arithmeticCommands).contains(keyWords[0]);
+        boolean arithmeticCommand = Arrays.asList(arithmeticCommands).contains(keyWords[0]);
         if(arithmeticCommand){
+            checkNumberOfArguments(keyWords, commandType, 0);
             return new ArithmeticInstruction(keyWords[0]);
         }
+        if(commandType.equals("label") || commandType.equals("goto") || commandType.equals("if-goto")){
+            checkNumberOfArguments(keyWords, commandType, 1);
+            if(commandType.equals("label")){
+                return new LabelInstruction(keyWords[1]);
+            }
+            if(commandType.equals("goto")){
+                return new GotoInstruction(keyWords[1]);
+            }
+            return new IfGotoInstruction(keyWords[1]);
+        }
+        if(commandType.equals("function") || commandType.equals("call")){
+            checkNumberOfArguments(keyWords, commandType, 2);
+            checkArgumentType(keyWords, 2, "\\d+", "int");
+            if(commandType.equals("function")) {
+                return new FunctionInstruction(keyWords[1], Integer.parseInt(keyWords[2]));
+            }
+            return new CallInstruction(keyWords[1], Integer.parseInt(keyWords[2]));
+        }
+        if(commandType.equals("return")){
+            checkNumberOfArguments(keyWords, commandType, 0);
+            return new ReturnInstruction();
+        }
         throw new IllegalArgumentException("Invalid Command: "+line);
+    }
+
+    private static void checkArgumentType(String[] keyWords, int idx, String expr, String expected) {
+        if(!keyWords[idx].matches(expr)){
+            throw new WrongTypeArgumentException(expected, keyWords[idx]);
+        }
+    }
+
+    private static void checkNumberOfArguments(String[] keyWords, String commandType, int expected) {
+        if (keyWords.length-1 != expected) {
+            throw new WrongNumberOfArgumentsException(commandType, expected, keyWords.length - 1);
+        }
     }
 }

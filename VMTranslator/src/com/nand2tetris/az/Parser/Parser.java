@@ -8,7 +8,7 @@ import java.io.*;
 
 public class Parser {
     private String curLine, nextLine;
-    private BufferedReader reader;
+    private final BufferedReader reader;
     private int lineNum;
 
     public Parser(String fileName){
