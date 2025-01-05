@@ -8,12 +8,10 @@ public class NFA {
     private final List<int[]> transitions;
     private final HashMap<Integer, Integer> finalStates;
     private final List<List<Integer>> epsTrasitions;
-    private final Stack<Integer> startStates;
     public NFA(){
         this.transitions = new ArrayList<>();
         this.epsTrasitions = new ArrayList<>();
         this.finalStates = new HashMap<>();
-        this.startStates = new Stack<>();
     }
     public int createState(){
         var stateTransitions = new int[NUM_CHARS];
@@ -27,7 +25,6 @@ public class NFA {
         assert from >= 0 && from < this.transitions.size();
         assert to >= 0 && to < this.transitions.size();
         this.transitions.get(from)[symbol] = to;
-        modifyStartState(from);
     }
 
     public void addEpsilonTransition(int from, int to){
@@ -90,25 +87,11 @@ public class NFA {
         return ret.stream().toList();
     }
 
-    public void pushStartState(int state){
-        startStates.add(state);
-    }
-
-    public void popStartState(){
-        assert !startStates.isEmpty();
-        startStates.pop();
-    }
-
-    public void modifyStartState(int state){
-        assert !startStates.isEmpty();
-        startStates.pop();
-        startStates.add(state);
-    }
-
-    public int peekStartState(){
-        if(startStates.isEmpty()){
-            return -1;
-        }
-        return startStates.peek();
+    public void addDotTransition(int from, int to) {
+        assert from >= 0 && from < this.transitions.size();
+        assert to >= 0 && to < this.transitions.size();
+        var temp = transitions.get(from);
+        Arrays.fill(temp, to);
+        temp['\n'] = -1;
     }
 }
