@@ -193,4 +193,15 @@ public class RegexReaderTest {
         assertEquals(0, nfa.match("13123"));
         assertEquals(-1, nfa.match("a"));
     }
+
+    @Test
+    public void testMultipleRule(){
+        RegexReader reader = new RegexReader();
+        reader.addRegex("if",  0);
+        NFA nfa = reader.addRegex("[_a-zA-Z][_a-zA-Z0-9]*",1);
+        assertEquals(0, nfa.match("if"));
+        assertEquals(1, nfa.match("if_121312Agska_dl123"));
+        assertEquals(1, nfa.match("if_"));
+        assertEquals(-1, nfa.match("1if"));
+    }
 }
