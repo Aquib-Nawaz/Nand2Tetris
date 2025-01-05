@@ -9,8 +9,8 @@ public class RegexReaderTest {
     @Test
     public void testRegexReaderSimple() {
 
-        RegexReader reader = new RegexReader("abcd");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("abcd",0);
         assertEquals(0, nfa.match("abcd"));
         assertEquals(-1, nfa.match("abc"));
         assertEquals(-1, nfa.match("abce"));
@@ -19,15 +19,15 @@ public class RegexReaderTest {
     @Test
     public void testRegexReaderWithStar() {
 
-        RegexReader reader = new RegexReader("abc*");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("abc*",0);
         assertEquals(0, nfa.match("abc"));
         assertEquals(0, nfa.match("abcc"));
         assertEquals(0, nfa.match("ab"));
         assertEquals(-1, nfa.match("abcd"));
         assertEquals(-1, nfa.match("a"));
-        reader = new RegexReader("a*");
-        nfa = reader.getNFA();
+        reader = new RegexReader();
+        nfa = reader.addRegex("a*",0);
         assertEquals(0, nfa.match("a"));
         assertEquals(0, nfa.match("aa"));
         assertEquals(-1, nfa.match("ab"));
@@ -36,14 +36,14 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithOr() {
-        RegexReader reader = new RegexReader("ab|cd");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("ab|cd",0);
         assertEquals(0, nfa.match("ab"));
         assertEquals(0, nfa.match("cd"));
         assertEquals(-1, nfa.match("abcd"));
 
-        reader = new RegexReader("a*df|b*th");
-        nfa = reader.getNFA();
+        reader = new RegexReader();
+        nfa = reader.addRegex("a*df|b*th",0);
         assertEquals(0, nfa.match("adf"));
         assertEquals(0, nfa.match("bth"));
         assertEquals(0, nfa.match("th"));
@@ -58,8 +58,8 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithBrackets() {
-        RegexReader reader = new RegexReader("(ab|cd)");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("(ab|cd)",0);
         assertEquals(0, nfa.match("ab"));
         assertEquals(0, nfa.match("cd"));
         assertEquals(-1, nfa.match("abcd"));
@@ -67,12 +67,12 @@ public class RegexReaderTest {
         assertEquals(-1, nfa.match("bc"));
         assertEquals(-1, nfa.match("c"));
 
-        reader = new RegexReader("(ab)*");
-        nfa = reader.getNFA();
+        reader = new RegexReader();
+        nfa = reader.addRegex("(ab)*",0);
         assertEquals(0, nfa.match("ab"));
         assertEquals(0, nfa.match("abab"));
-        reader = new RegexReader("(ab|cd)*");
-        nfa = reader.getNFA();
+        reader = new RegexReader();
+        nfa = reader.addRegex("(ab|cd)*",0);
         assertEquals(0, nfa.match("cd"));
         assertEquals(0, nfa.match("abcdab"));
         assertEquals(0, nfa.match("cdabcdcd"));
@@ -82,8 +82,8 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithBrackets2() {
-        RegexReader reader = new RegexReader("(ab*df*|ce*g)*");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("(ab*df*|ce*g)*",0);
         assertEquals(0, nfa.match("abdf"));
         assertEquals(0, nfa.match("ad"));
         assertEquals(0, nfa.match("adffff"));
@@ -95,16 +95,16 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithBrackets3() {
-        RegexReader reader = new RegexReader("ab(c|df)");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("ab(c|df)",0);
         assertEquals(0, nfa.match("abc"));
         assertEquals(0, nfa.match("abdf"));
     }
 
     @Test
     public void testRegexReaderWithBrackets4() {
-        RegexReader reader = new RegexReader("ab(c|df)*");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("ab(c|df)*",0);
         assertEquals(0, nfa.match("abc"));
         assertEquals(0, nfa.match("abdf"));
         assertEquals(0, nfa.match("abccccdf"));
@@ -115,8 +115,8 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithBrackets5() {
-        RegexReader reader = new RegexReader("ab(c|(d*|f))(g|h)*");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("ab(c|(d*|f))(g|h)*",0);
         assertEquals(0, nfa.match("abc"));
         assertEquals(0, nfa.match("abch"));
         assertEquals(-1, nfa.match("abccccdf"));
@@ -127,8 +127,8 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithQuestionMark() {
-        RegexReader reader = new RegexReader("ab?cd");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("ab?cd",0);
         assertEquals(0, nfa.match("acd"));
         assertEquals(0, nfa.match("abcd"));
         assertEquals(-1, nfa.match("abbcd"));
@@ -137,15 +137,15 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithDot() {
-        RegexReader reader = new RegexReader(".");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex(".",0);
         assertEquals(0, nfa.match("a"));
         assertEquals(0, nfa.match("b"));
         assertEquals(0, nfa.match("c"));
         assertEquals(0, nfa.match("d"));
         assertEquals(-1, nfa.match("ab"));
-        reader = new RegexReader("a.");
-        nfa = reader.getNFA();
+        reader = new RegexReader();
+        nfa = reader.addRegex("a.",0);
         assertEquals(0, nfa.match("aa"));
         assertEquals(0, nfa.match("ab"));
         assertEquals(-1, nfa.match("b"));
@@ -154,8 +154,8 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithDotStar() {
-        RegexReader reader = new RegexReader(".*");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex(".*",0);
         assertEquals(0, nfa.match(""));
         assertEquals(0, nfa.match("a"));
         assertEquals(0, nfa.match("ab"));
@@ -168,8 +168,8 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithBigBracket() {
-        RegexReader reader = new RegexReader("[b-z]*");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("[b-z]*",0);
         assertEquals(0, nfa.match("b"));
         assertEquals(0, nfa.match("zhsdkfjsdlkbk"));
         assertEquals(-1, nfa.match("a"));
@@ -178,8 +178,8 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithBigBracket2() {
-        RegexReader reader = new RegexReader("[_a-zA-Z][0-9_a-zA-Z]*");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("[_a-zA-Z][0-9_a-zA-Z]*",0);
         assertEquals(-1, nfa.match("1dsahldhh"));
         assertEquals(-1, nfa.match("046"));
         assertEquals(0, nfa.match("_121312Agska_dl123"));
@@ -188,8 +188,8 @@ public class RegexReaderTest {
 
     @Test
     public void testRegexReaderWithBigBracket3() {
-        RegexReader reader = new RegexReader("[^a-z]*");
-        NFA nfa = reader.getNFA();
+        RegexReader reader = new RegexReader();
+        NFA nfa = reader.addRegex("[^a-z]*",0);
         assertEquals(0, nfa.match("13123"));
         assertEquals(-1, nfa.match("a"));
     }

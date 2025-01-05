@@ -6,67 +6,70 @@ import java.util.Map;
 import java.util.Stack;
 
 public class RegexReader {
-    private final String regex;
+    private String regex;
+    private final NFA nfa;
+    private final  int S_STATE;
     private static final List<Character> specialChars = List.of(
             '[',']','\\','^','*','+','$','?','.','(',')','|');
     private static final Map<Character, Integer> escapedSequence = Map.of(
             '0', 0,'t', 9, 'r', 13, 'n', 10, 'v', 11 );
-    public RegexReader(String regex){
-        this.regex = regex;
+    public RegexReader(){
+        nfa = new NFA();
+        S_STATE = nfa.createState(); // start state
     }
 
-    public NFA getNFA(){
-        var ret = new NFA();
+    public NFA addRegex(String regex, int rule){
+        this.regex = regex;
         Stack<Integer> startStates = new Stack<>();
         Stack<Integer> endStates = new Stack<>();
-        startStates.push(ret.createState());
-        int curState = ret.createState();
-        ret.addEpsilonTransition(startStates.peek(), curState);
+        startStates.push(S_STATE);
+        int curState = nfa.createState();
+        nfa.addEpsilonTransition(S_STATE, curState);
         int runningStartState = curState;
-        int runningEndState = ret.createState();
-        ret.addFinalState(runningEndState, 0);
+        int runningEndState = nfa.createState();
+        nfa.addFinalState(runningEndState, rule);
         for(int i=0; i<regex.length(); i++){
             char c = regex.charAt(i);
             switch (c){
                 case '*':{
-                    var newState = ret.createState();
+                    var newState = nfa.createState();
                     assert runningStartState != -1;
-                    ret.addEpsilonTransition(runningStartState, newState);
-                    ret.addEpsilonTransition(curState, newState);
-                    ret.addEpsilonTransition(newState, runningStartState);
+                    nfa.addEpsilonTransition(runningStartState, newState);
+                    nfa.addEpsilonTransition(curState, newState);
+                    nfa.addEpsilonTransition(newState, runningStartState);
                     curState = newState;
                     runningStartState = -1;
                     break;
                 }
                 case '|':
-                    ret.addEpsilonTransition(curState, runningEndState);
-                    runningStartState = curState = ret.createState();
-                    ret.addEpsilonTransition(startStates.peek() ,curState);
+                    nfa.addEpsilonTransition(curState, runningEndState);
+                    runningStartState = curState = nfa.createState();
+                    nfa.addEpsilonTransition(startStates.peek() ,curState);
                     break;
                 case '(':
                     startStates.push(curState);
                     endStates.push(runningEndState);
-                    runningStartState = ret.createState();
-                    ret.addEpsilonTransition(curState, runningStartState);
+                    runningStartState = nfa.createState();
+                    nfa.addEpsilonTransition(curState, runningStartState);
                     curState = runningStartState;
-                    runningEndState = ret.createState();
+                    runningEndState = nfa.createState();
                     break;
                 case ')':
                     var prevEndState = endStates.pop();
                     var prevStartState = startStates.pop();
-                    ret.addEpsilonTransition(curState, runningEndState);
+                    nfa.addEpsilonTransition(curState, runningEndState);
                     curState = runningEndState;
                     runningStartState = prevStartState;
                     runningEndState = prevEndState;
                     break;
                 case '[':{
                     var record = bracketCharacters(i+1);
-                    var newState = ret.createState();
+                    var newState = nfa.createState();
                     if(record.opposite){
-                        ret.addOppositeTransitions(curState, newState, record.characters);
+                        nfa.addOppositeTransitions(curState, newState, record.characters);
                     }
                     else{
-                        ret.addMultipeTransitions(curState, newState, record.characters);
+                        nfa.addMultipeTransitions(curState, newState, record.characters);
                     }
                     i = record.idx;
                     runningStartState = curState;
@@ -74,17 +77,17 @@ public class RegexReader {
                     break;
                 }
                 case '.':{
-                    var newState = ret.createState();
-                    ret.addDotTransition(curState, newState);
+                    var newState = nfa.createState();
+                    nfa.addDotTransition(curState, newState);
                     runningStartState = curState;
                     curState = newState;
                     break;
                 }
                 case '?':{
-                    var newState = ret.createState();
+                    var newState = nfa.createState();
                     assert runningStartState != -1;
-                    ret.addEpsilonTransition(runningStartState, newState);
-                    ret.addEpsilonTransition(curState, newState);
+                    nfa.addEpsilonTransition(runningStartState, newState);
+                    nfa.addEpsilonTransition(curState, newState);
                     curState = newState;
                     runningStartState = -1;
                     break;
@@ -92,15 +95,15 @@ public class RegexReader {
                 case '\\':
                     c = getEscapedCharValue(++i);
                 default:
-                    var newState = ret.createState();
-                    ret.addTransition(curState, newState, c);
+                    var newState = nfa.createState();
+                    nfa.addTransition(curState, newState, c);
                     runningStartState = curState;
                     curState = newState;
                     break;
             }
         }
-        ret.addEpsilonTransition(curState, runningEndState);
-        return ret;
+        nfa.addEpsilonTransition(curState, runningEndState);
+        return nfa;
     }
 
     private char getEscapedCharValue(int i){
@@ -111,7 +114,7 @@ public class RegexReader {
             c = (char)(int)escapedSequence.get(c);
         }
         else if(!specialChars.contains(c)){
-            throw new IllegalArgumentException("Invalid escape sequence: " + c);
+            throw new IllegalStateException("Invalid escape sequence: " + c);
         }
         return c;
     }
