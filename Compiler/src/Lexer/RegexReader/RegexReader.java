@@ -52,11 +52,10 @@ public class RegexReader {
                     runningEndState = prevEndState;
                     break;
                 case '[':
-
                     break;
                 case '.':{
                     var newState = ret.createState();
-                    ret.addDotTransition(curState, runningEndState);
+                    ret.addDotTransition(curState, newState);
                     runningStartState = curState;
                     curState = newState;
                     break;
