@@ -94,4 +94,19 @@ public class NFA {
         Arrays.fill(temp, to);
         temp['\n'] = -1;
     }
+
+    public void addMultipeTransitions(int curState, int newState, List<Character> characters) {
+        var temp = transitions.get(curState);
+        for (char c : characters) {
+            temp[c] = newState;
+        }
+    }
+
+    public void addOppositeTransitions(int curState, int newState, List<Character> characters) {
+        var temp = transitions.get(curState);
+        Arrays.fill(temp, newState);
+        for (char c : characters) {
+            temp[c] = -1;
+        }
+    }
 }

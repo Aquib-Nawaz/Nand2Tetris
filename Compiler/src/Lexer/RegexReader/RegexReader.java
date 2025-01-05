@@ -1,9 +1,16 @@
 package Lexer.RegexReader;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 public class RegexReader {
     private final String regex;
+    private static final List<Character> specialChars = List.of(
+            '[',']','\\','^','*','+','$','?','.','(',')','|');
+    private static final Map<Character, Integer> escapedSequence = Map.of(
+            '0', 0,'t', 9, 'r', 13, 'n', 10, 'v', 11 );
     public RegexReader(String regex){
         this.regex = regex;
     }
@@ -23,6 +30,7 @@ public class RegexReader {
             switch (c){
                 case '*':{
                     var newState = ret.createState();
+                    assert runningStartState != -1;
                     ret.addEpsilonTransition(runningStartState, newState);
                     ret.addEpsilonTransition(curState, newState);
                     ret.addEpsilonTransition(newState, runningStartState);
@@ -51,8 +59,20 @@ public class RegexReader {
                     runningStartState = prevStartState;
                     runningEndState = prevEndState;
                     break;
-                case '[':
+                case '[':{
+                    var record = bracketCharacters(i+1);
+                    var newState = ret.createState();
+                    if(record.opposite){
+                        ret.addOppositeTransitions(curState, newState, record.characters);
+                    }
+                    else{
+                        ret.addMultipeTransitions(curState, newState, record.characters);
+                    }
+                    i = record.idx;
+                    runningStartState = curState;
+                    curState = newState;
                     break;
+                }
                 case '.':{
                     var newState = ret.createState();
                     ret.addDotTransition(curState, newState);
@@ -62,6 +82,7 @@ public class RegexReader {
                 }
                 case '?':{
                     var newState = ret.createState();
+                    assert runningStartState != -1;
                     ret.addEpsilonTransition(runningStartState, newState);
                     ret.addEpsilonTransition(curState, newState);
                     curState = newState;
@@ -69,8 +90,7 @@ public class RegexReader {
                     break;
                 }
                 case '\\':
-                    assert i+1 < regex.length();
-                    c = regex.charAt(++i);
+                    c = getEscapedCharValue(++i);
                 default:
                     var newState = ret.createState();
                     ret.addTransition(curState, newState, c);
@@ -81,5 +101,57 @@ public class RegexReader {
         }
         ret.addEpsilonTransition(curState, runningEndState);
         return ret;
+    }
+
+    private char getEscapedCharValue(int i){
+        assert i < regex.length();
+        char c = regex.charAt(i);
+
+        if(escapedSequence.containsKey(c)){
+            c = (char)(int)escapedSequence.get(c);
+        }
+        else if(!specialChars.contains(c)){
+            throw new IllegalArgumentException("Invalid escape sequence: " + c);
+        }
+        return c;
+    }
+    private record Record(int idx, List<Character> characters, boolean opposite){}
+
+    private Record bracketCharacters(int idx){
+        char lastChar = (char)-1;
+        List<Character> ret = new ArrayList<>();
+        boolean opposite = false;
+        if(idx<regex.length() && regex.charAt(idx) == '^'){
+            opposite = true;
+            idx++;
+        }
+        while (idx < regex.length() && regex.charAt(idx) != ']') {
+            char c = regex.charAt(idx);
+            if (c=='-'){
+                idx++;
+                assert(idx < regex.length());
+                c = regex.charAt(idx);
+                if(c=='\\') {
+                    assert(idx+1 < regex.length());
+                    c = getEscapedCharValue(++idx);
+                }
+                for(int i =  lastChar+1; i<=c; i++){
+                    ret.add((char)i);
+                }
+                lastChar = (char) -1;
+                idx++;
+                continue;
+            }
+            if(c=='\\') {
+                ++idx;
+                assert(idx < regex.length());
+                c = getEscapedCharValue(idx);
+            }
+            lastChar = c;
+            ret.add(c);
+            idx++;
+        }
+        assert(idx < regex.length() && regex.charAt(idx) == ']');
+        return new Record(idx, ret, opposite);
     }
 }

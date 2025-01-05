@@ -165,4 +165,32 @@ public class RegexReaderTest {
         assertEquals(0, nfa.match("b"));
         assertEquals(0, nfa.match("ababab"));
     }
+
+    @Test
+    public void testRegexReaderWithBigBracket() {
+        RegexReader reader = new RegexReader("[b-z]*");
+        NFA nfa = reader.getNFA();
+        assertEquals(0, nfa.match("b"));
+        assertEquals(0, nfa.match("zhsdkfjsdlkbk"));
+        assertEquals(-1, nfa.match("a"));
+        assertEquals(-1, nfa.match("hdslhflkadhsfkhafdfs"));
+    }
+
+    @Test
+    public void testRegexReaderWithBigBracket2() {
+        RegexReader reader = new RegexReader("[_a-zA-Z][0-9_a-zA-Z]*");
+        NFA nfa = reader.getNFA();
+        assertEquals(-1, nfa.match("1dsahldhh"));
+        assertEquals(-1, nfa.match("046"));
+        assertEquals(0, nfa.match("_121312Agska_dl123"));
+        assertEquals(0, nfa.match("_"));
+    }
+
+    @Test
+    public void testRegexReaderWithBigBracket3() {
+        RegexReader reader = new RegexReader("[^a-z]*");
+        NFA nfa = reader.getNFA();
+        assertEquals(0, nfa.match("13123"));
+        assertEquals(-1, nfa.match("a"));
+    }
 }
