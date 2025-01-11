@@ -1,5 +1,8 @@
 package Lexer.RegexReader;
 
+import Lexer.Automaton.DFA;
+import Lexer.Automaton.NFA;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -156,5 +159,9 @@ public class RegexReader {
         }
         assert(idx < regex.length() && regex.charAt(idx) == ']');
         return new Record(idx, ret, opposite);
+    }
+
+    public DFA getDFA(){
+        return new DFA(nfa);
     }
 }

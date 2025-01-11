@@ -1,8 +1,7 @@
-package Lexer.RegexReader;
-
+package Lexer.Automaton;
 import java.util.*;
 
-public class NFA {
+public class NFA  {
     private static final int NUM_CHARS = 256;
     private static final Integer INT_MAX = 2147483647;
     private final List<int[]> transitions;
@@ -60,6 +59,10 @@ public class NFA {
         return ret;
     }
 
+    public int matchRule(List<Integer> states){
+        var ret = states.stream().mapToInt(x->finalStates.getOrDefault(x, INT_MAX)).min();
+        return (ret.isEmpty() || ret.getAsInt() == INT_MAX) ? -1 : ret.getAsInt();
+    }
     public int match(String input){
         List<Integer>curStates = new ArrayList<>();
         curStates.add(0);
@@ -69,10 +72,7 @@ public class NFA {
         }
         curStates = closure(curStates);
         if(!curStates.isEmpty()){
-            var ret = curStates.stream().mapToInt(x->finalStates.getOrDefault(x, INT_MAX)).min().getAsInt();
-            if(ret != INT_MAX){
-                return ret;
-            }
+            return matchRule(curStates);
         }
         return -1;
     }

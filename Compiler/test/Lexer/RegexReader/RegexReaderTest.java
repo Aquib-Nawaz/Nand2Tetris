@@ -1,5 +1,6 @@
 package Lexer.RegexReader;
 
+import Lexer.Automaton.NFA;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -198,10 +199,11 @@ public class RegexReaderTest {
     public void testMultipleRule(){
         RegexReader reader = new RegexReader();
         reader.addRegex("if",  0);
+        reader.addRegex(".*",  2);
         NFA nfa = reader.addRegex("[_a-zA-Z][_a-zA-Z0-9]*",1);
         assertEquals(0, nfa.match("if"));
         assertEquals(1, nfa.match("if_121312Agska_dl123"));
         assertEquals(1, nfa.match("if_"));
-        assertEquals(-1, nfa.match("1if"));
+        assertEquals(2, nfa.match("1if"));
     }
 }
