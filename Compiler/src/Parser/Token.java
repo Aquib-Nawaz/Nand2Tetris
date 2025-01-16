@@ -1,19 +1,9 @@
 package Parser;
 
-public abstract class Token {
-    protected int id=-1;
+public class Token {
     protected String name;
-    protected Token(String name) {
+    public Token(String name) {
         this.name = name;
-    }
-
-    public abstract boolean isTerminal();
-    public void setId(int id){
-        this.id = id;
-    }
-
-    public int getId(){
-        return id;
     }
 
     @Override

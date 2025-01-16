@@ -1,8 +1,7 @@
 package Parser.LR0;
 
-import Parser.NonTerminal;
 import Parser.Rule;
-import Parser.Terminal;
+import Parser.Symbol;
 import Parser.Token;
 import junit.framework.TestCase;
 
@@ -17,13 +16,14 @@ public class LR0Test extends TestCase {
     protected void setUp() throws Exception {
         super.setUp();
         List<Rule> rules = new ArrayList<>();
-        Token S = new NonTerminal("S"), L = new NonTerminal("L");
-
-        rules.add(new Rule(S, List.of(new Terminal("("), L,
-                new Terminal(")"))));
-        rules.add(new Rule(S, List.of(new Terminal("x"))));
+        Symbol S = new Symbol("S", false), L = new Symbol("L", false);
+        Symbol x = new Symbol("x", true), lp = new Symbol("(", true),
+                rp = new Symbol(")", true), comma = new Symbol(",", true);
+        rules.add(new Rule(S, List.of(lp, L,
+                rp)));
+        rules.add(new Rule(S, List.of(x)));
         rules.add(new Rule(L, List.of(S)));
-        rules.add(new Rule(L, List.of(L, new Terminal(","), S)));
+        rules.add(new Rule(L, List.of(L, comma, S)));
         lr0 = new LR0(rules);
     }
     public void testLR0NumNonTerminals() {
@@ -41,16 +41,16 @@ public class LR0Test extends TestCase {
 
     public void testGoTo(){
         HashSet<LR0Item> state = lr0.closure(List.of(new LR0Item(4 ,0)));
-        var newState = lr0.goTo(state, new Terminal("x"));
+        var newState = lr0.goTo(state, new Symbol("x", true));
         assertEquals(1, newState.size());
         assertTrue(newState.contains(new LR0Item(1, 1)));
 
-        newState = lr0.goTo(state, new NonTerminal("S"));
+        newState = lr0.goTo(state, new Symbol("S", false));
         assertEquals(1, newState.size());
         assertTrue(newState.contains(new LR0Item(4, 1)));
-        state = lr0.goTo(state, new Terminal("("));
+        state = lr0.goTo(state, new Symbol("(", true));
         assertEquals(5, state.size());
-        newState = lr0.goTo(state, new Terminal("("));
+        newState = lr0.goTo(state, new Symbol("(", true));
         assertEquals(state, newState);
     }
 
@@ -60,8 +60,8 @@ public class LR0Test extends TestCase {
     }
 
     public void testParse()  {
-        Token x = new Terminal("x"), lp  = new Terminal("("), rp = new Terminal(")"),
-        comma = new Terminal(",");
+        Token x = new Token("x"), lp  = new Token("("), rp = new Token(")"),
+        comma = new Token(",");
         var sentence = List.of(lp,x,comma,x,rp);
         assertTrue(lr0.parse(sentence));
         sentence = List.of(lp,lp,x,comma,x,rp);

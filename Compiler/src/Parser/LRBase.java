@@ -1,27 +1,25 @@
-package Parser.LR0;
+package Parser;
 
-import Parser.*;
 import Parser.Exceptions.ShiftReduceException;
+import Parser.LR0.LR0Item;
 
 import java.util.*;
 
-public class LR0 {
+public abstract class LRBase {
+    protected int nonTerminals;
+    protected List <Rule> rules;
+    protected Map<Integer, List<Integer>> ruleMap;
     private List<HashMap<String, Integer>>parsingTable;
-    private int nonTerminals;
-    private List <Rule> rules;
-    private Map<Integer, List<Integer>> ruleMap;
-    private Map<Integer, Integer> reduceStates;
-    private HashSet<Integer> acceptingStates;
-    public LR0(List<Rule> rules) throws ShiftReduceException {
+    protected HashSet<Integer> acceptingStates;
+    protected List<Map<String, Integer>> reduceStates;
+    public LRBase(List<Rule> rules) throws ShiftReduceException {
         if(rules == null || rules.isEmpty()) return;
-        parsingTable = new ArrayList<>();
         this.rules = rules;
         this.rules.add(new Rule(new Symbol("S'", false),
                 List.of(rules.getFirst().lhs(), new Symbol("$", true))));
         this.rules.getLast().lhs().setId(0);
         initializeId();
         initializeRuleMap();
-        createParisngTable();
     }
 
     void setTokenToId(Symbol token){
@@ -49,33 +47,37 @@ public class LR0 {
         }
     }
 
-    public HashSet<LR0Item> closure(Collection<LR0Item> items){
+    public record parentItemChildId(LRItemBase parentItem, int childId){}
+
+    public HashSet<LRItemBase> closure(Collection<LRItemBase> items){
         if(items == null || items.isEmpty()) return new HashSet<>();
-        Queue<Integer> toExplore = new LinkedList<>();
+        Queue<parentItemChildId> toExplore = new LinkedList<>();
         HashSet<Integer> vis = new HashSet<>();
-        var ret = new ArrayList<LR0Item>();
-        for(LR0Item item: items){
+        var ret = new ArrayList<LRItemBase>();
+        for(LRItemBase item: items){
             var pos = item.pos();
             var rule = rules.get(item.ruleNum()).rhs();
             ret.add(item);
 
             if(pos < rule.size()){
                 var next = rule.get(pos);
-                if(next.isTerminal()) continue;
-                toExplore.add(next.getId());
+                var nextId = next.getId();
+                if(next.isTerminal()||vis.contains(nextId)) continue;
+                toExplore.add(new parentItemChildId(item, nextId));
+                vis.add(nextId);
             }
         }
         while(!toExplore.isEmpty()){
             var next = toExplore.remove();
-            if(vis.contains(next)) continue;
-            for (int i : ruleMap.getOrDefault(next, new ArrayList<>())) {
-                ret.add(new LR0Item(i, 0));
+            for (int i : ruleMap.getOrDefault(next.childId, new ArrayList<>())) {
+                ret.add(next.parentItem.getChildItem(i));
                 var child = rules.get(i).rhs().getFirst();
-                if(!child.isTerminal() && !vis.contains(child.getId())){
-                    toExplore.add(child.getId());
+                var childId = child.getId();
+                if(!child.isTerminal() && !vis.contains(childId)){
+                    toExplore.add(new parentItemChildId(next.parentItem(), childId));
+                    vis.add(childId);
                 }
             }
-            vis.add(next);
         }
         return new HashSet<>(ret);
     }
@@ -84,50 +86,51 @@ public class LR0 {
         return nonTerminals;
     }
 
-    public HashSet<LR0Item> goTo(Collection<LR0Item> items, Symbol token){
+    public HashSet<LRItemBase> goTo(Collection<LRItemBase> items, Symbol token){
 
-        List<LR0Item> ret = new ArrayList<>();
-        for(LR0Item item: items){
+        List<LRItemBase> ret = new ArrayList<>();
+        for(LRItemBase item: items){
             var rule = rules.get(item.ruleNum());
             var pos = item.pos();
-            if(pos==rule.rhs().size()) continue;
             var next = rule.rhs().get(pos);
             if(Objects.equals(next.toString(), token.toString())){
-                ret.add(new LR0Item(item.ruleNum(), pos + 1));
+                ret.add(item.getGoToItem());
             }
         }
         return closure(ret);
     }
 
-    public record LR0State(HashSet<LR0Item> state, int id){}
-    public void createParisngTable() throws ShiftReduceException {
-        Map<HashSet<LR0Item>, Integer> states = new HashMap<>();
-        reduceStates = new HashMap<>();
+    public record LRBaseState(HashSet<LRItemBase> state, int id){}
+
+    public void createParisngTable(LRItemBase initialItem) throws ShiftReduceException {
+        parsingTable = new ArrayList<>();
+        Map<HashSet<LRItemBase>, Integer> states = new HashMap<>();
+        reduceStates = new ArrayList<>();
         acceptingStates = new HashSet<>();
-        HashSet<LR0Item> curState = new HashSet<>();
-        curState.add(new LR0Item(rules.size()-1, 0));
+        HashSet<LRItemBase> curState = new HashSet<>();
+
+        curState.add(getInitialItem());
         curState = closure(curState);
+
         int curStateId = 0;
         states.put(curState, curStateId);
-        Queue<LR0State> toExplore = new LinkedList<>();
-        toExplore.add(new LR0State(curState,0));
+        Queue<LRBaseState> toExplore = new LinkedList<>();
+
+        toExplore.add(new LRBaseState(curState,0));
 
         while(!toExplore.isEmpty()){
             var curStateRecord = toExplore.remove();
             curState = curStateRecord.state;
             curStateId = curStateRecord.id;
             var parsingTableRow = new HashMap<String, Integer>();
-            if(!checkIfReduce(curState, curStateId)){
-                HashSet<String> visitedX = new HashSet<>();
-                for(LR0Item item: curState){
+            var reduceRow = new HashMap<String, Integer>();
+            if(!checkIfReduce(curState, curStateId, reduceRow)){
+                for(LRItemBase item: curState){
                     var rule = rules.get(item.ruleNum());
                     var pos = item.pos();
-                    if(pos == rule.rhs().size()) throw new ShiftReduceException(curState);
+
                     var next = rule.rhs().get(pos);
-                    String nextString =  next.toString();
-                    if(visitedX.contains(nextString)) continue;
-                    visitedX.add(nextString);
-                    if(next.isTerminal() && Objects.equals(nextString, "$")) {
+                    if(next.isTerminal() && Objects.equals(next.toString(), "$")) {
                         acceptingStates.add(curStateId);
                         continue;
                     }
@@ -135,7 +138,7 @@ public class LR0 {
                     int newStateId = states.getOrDefault(newState, -1);
                     if(newStateId == -1){
                         newStateId = states.size();
-                        toExplore.add(new LR0State(newState, newStateId));
+                        toExplore.add(new LRBaseState(newState, newStateId));
                         states.put(newState, states.size());
                     }
                     parsingTableRow.put(next.toString(), newStateId);
@@ -145,23 +148,24 @@ public class LR0 {
         }
     }
 
-    private boolean checkIfReduce(HashSet<LR0Item> curState, int curStateId) {
-        if(curState.size()!=1) return false;
+    protected abstract LRItemBase getInitialItem();
+
+    private boolean checkIfReduce(HashSet<LRItemBase> curState, int curStateId, HashMap<String, Integer> reduceTableRow) {
         var item = curState.iterator().next();
         var pos = item.pos();
         var rule = rules.get(item.ruleNum());
         if(pos == rule.rhs().size()) {
-            reduceStates.put(curStateId, item.ruleNum());
-            return true;
+            return item.putReduceState(reduceTableRow);
         }
         return false;
     }
 
     public List<HashMap<String, Integer>> getTable(){return parsingTable;}
 
-    private boolean tryReduce(int curState, Stack<Integer> stack) {
-        while(reduceStates.containsKey(curState)){
-            var ruleNum = reduceStates.get(curState);
+    private boolean tryReduce(Token token, int curState, Stack<Integer> stack) {
+        var reduceRow = reduceStates.get(curState);
+        while(reduceRow.containsKey(token.toString()) || reduceRow.containsKey("<all>")){
+            var ruleNum = reduceRow.get(token.toString());
             var rule = rules.get(ruleNum);
             for(int i = rule.rhs().size() - 1; i >= 0; i--){
                 stack.pop();
@@ -179,7 +183,7 @@ public class LR0 {
         var curState = 0;
         stack.push(curState);
         for(Token token:tokens){
-            if(tryReduce(curState, stack))
+            if(tryReduce(token, curState, stack))
                 return false;
             curState = stack.peek();
             curState = parsingTable.get(curState).getOrDefault(token.toString(),-1);
@@ -187,7 +191,7 @@ public class LR0 {
             stack.push(curState);
         }
 
-        if(tryReduce(curState, stack)) return false;
+        if(tryReduce(new Token("$") ,curState, stack)) return false;
         return acceptingStates.contains(stack.peek());
     }
 }

@@ -2,5 +2,5 @@ package Parser;
 
 import java.util.List;
 
-public record Rule(Token lhs, List<Token>rhs) {
+public record Rule(Symbol lhs, List<Symbol>rhs) {
 }
