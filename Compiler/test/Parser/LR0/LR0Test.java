@@ -1,5 +1,7 @@
 package Parser.LR0;
 
+import Parser.Exceptions.ShiftReduceException;
+import Parser.LRItemBase;
 import Parser.Rule;
 import Parser.Symbol;
 import Parser.Token;
@@ -30,17 +32,22 @@ public class LR0Test extends TestCase {
         assertEquals(3, lr0.getNumNonTerminals());
     }
 
+    public void testLR0andLRBaseItem(){
+        LRItemBase lrBase = new LRItemBase(0,0);
+        LRItemBase lr0 = new LR0Item(0,0);
+        assertTrue(lrBase.equals(lr0));
+    }
     public void testLR0Closure() {
-        List<LR0Item> items = List.of(new LR0Item(4 ,0));
+        List<LRItemBase> items = List.of(new LR0Item(4 ,0));
         var closure = lr0.closure(items);
         assertEquals(3, closure.size());
-        assertTrue(closure.contains(new LR0Item(4, 0)));
-        assertTrue(closure.contains(new LR0Item(1, 0)));
-        assertTrue(closure.contains(new LR0Item(0, 0)));
+        assertTrue(closure.contains(new LRItemBase(4, 0)));
+        assertTrue(closure.contains(new LRItemBase(1, 0)));
+        assertTrue(closure.contains(new LRItemBase(0, 0)));
     }
 
     public void testGoTo(){
-        HashSet<LR0Item> state = lr0.closure(List.of(new LR0Item(4 ,0)));
+        HashSet<LRItemBase> state = lr0.closure(List.of(new LR0Item(4 ,0)));
         var newState = lr0.goTo(state, new Symbol("x", true));
         assertEquals(1, newState.size());
         assertTrue(newState.contains(new LR0Item(1, 1)));
@@ -54,15 +61,17 @@ public class LR0Test extends TestCase {
         assertEquals(state, newState);
     }
 
-    public void testCreateParsingTable()  {
+    public void testCreateParsingTable() throws ShiftReduceException {
+        lr0.createParisngTable();
         var table = lr0.getTable();
         assertEquals(9, table.size());
     }
 
-    public void testParse()  {
+    public void testParse() throws ShiftReduceException {
         Token x = new Token("x"), lp  = new Token("("), rp = new Token(")"),
         comma = new Token(",");
-        var sentence = List.of(lp,x,comma,x,rp);
+        var sentence = List.of(lp,x,comma,x,rp );
+        lr0.createParisngTable();
         assertTrue(lr0.parse(sentence));
         sentence = List.of(lp,lp,x,comma,x,rp);
         assertFalse(lr0.parse(sentence));

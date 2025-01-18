@@ -1,7 +1,6 @@
 package Parser;
 
 import Parser.Exceptions.ShiftReduceException;
-import Parser.LR0.LR0Item;
 
 import java.util.*;
 
@@ -20,6 +19,7 @@ public abstract class LRBase {
         this.rules.getLast().lhs().setId(0);
         initializeId();
         initializeRuleMap();
+//        createParisngTable();
     }
 
     void setTokenToId(Symbol token){
@@ -102,7 +102,7 @@ public abstract class LRBase {
 
     public record LRBaseState(HashSet<LRItemBase> state, int id){}
 
-    public void createParisngTable(LRItemBase initialItem) throws ShiftReduceException {
+    public void createParisngTable() throws ShiftReduceException {
         parsingTable = new ArrayList<>();
         Map<HashSet<LRItemBase>, Integer> states = new HashMap<>();
         reduceStates = new ArrayList<>();
@@ -145,6 +145,7 @@ public abstract class LRBase {
                 }
             }
             parsingTable.add(parsingTableRow);
+            reduceStates.add(reduceRow);
         }
     }
 
@@ -163,9 +164,12 @@ public abstract class LRBase {
     public List<HashMap<String, Integer>> getTable(){return parsingTable;}
 
     private boolean tryReduce(Token token, int curState, Stack<Integer> stack) {
-        var reduceRow = reduceStates.get(curState);
-        while(reduceRow.containsKey(token.toString()) || reduceRow.containsKey("<all>")){
-            var ruleNum = reduceRow.get(token.toString());
+        var stringToken = token.toString();
+        while(true){
+            var reduceRow = reduceStates.get(curState);
+            var ruleNum = reduceRow.get(stringToken);
+            if(ruleNum == null) ruleNum = reduceRow.get("<all>");
+            if(ruleNum == null) return false;
             var rule = rules.get(ruleNum);
             for(int i = rule.rhs().size() - 1; i >= 0; i--){
                 stack.pop();
@@ -175,7 +179,7 @@ public abstract class LRBase {
             if(curState==-1) return true;
             stack.push(curState);
         }
-        return false;
+
     }
 
     public boolean parse(Collection<Token> tokens){
