@@ -9,7 +9,7 @@ import java.util.*;
 public abstract class LRBase {
     protected int nonTerminals;
     protected List <Rule> rules;
-    protected Map<Integer, List<Integer>> ruleMap;
+    protected List< List<Integer>> ruleMap;
     private List<HashMap<String, Integer>>parsingTable;
     protected HashSet<Integer> acceptingStates;
     protected List<Map<String, Integer>> reduceStates;
@@ -20,7 +20,7 @@ public abstract class LRBase {
                 List.of(rules.getFirst().lhs(), new Symbol("$", true))));
         this.rules.getLast().lhs().setId(0);
         nonTerminals = ParserUtility.initializeId(rules);
-        ruleMap = ParserUtility.initializeRuleMap(rules);
+        ruleMap = ParserUtility.initializeRuleMap(rules, nonTerminals);
 //        createParisngTable();
     }
 
@@ -47,7 +47,7 @@ public abstract class LRBase {
         }
         while(!toExplore.isEmpty()){
             var next = toExplore.remove();
-            for (int i : ruleMap.getOrDefault(next.childId, new ArrayList<>())) {
+            for (int i : ruleMap.get(next.childId)) {
                 ret.add(next.parentItem.getChildItem(i));
                 var child = rules.get(i).rhs().getFirst();
                 var childId = child.getId();
