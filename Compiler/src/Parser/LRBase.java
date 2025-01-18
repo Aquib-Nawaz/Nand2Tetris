@@ -2,7 +2,9 @@ package Parser;
 
 import Parser.Exceptions.ShiftReduceException;
 
+import java.net.PasswordAuthentication;
 import java.util.*;
+
 
 public abstract class LRBase {
     protected int nonTerminals;
@@ -17,35 +19,11 @@ public abstract class LRBase {
         this.rules.add(new Rule(new Symbol("S'", false),
                 List.of(rules.getFirst().lhs(), new Symbol("$", true))));
         this.rules.getLast().lhs().setId(0);
-        initializeId();
-        initializeRuleMap();
+        nonTerminals = ParserUtility.initializeId(rules);
+        ruleMap = ParserUtility.initializeRuleMap(rules);
 //        createParisngTable();
     }
 
-    void setTokenToId(Symbol token){
-        if(token.isTerminal() || token.getId()!=-1)return;
-        token.setId(nonTerminals++);
-    }
-    private void initializeId() {
-        nonTerminals = 1;
-        for (Rule rule : rules) {
-            var token = rule.lhs();
-            setTokenToId(token);
-            for (Symbol token1 : rule.rhs()) {
-                setTokenToId(token1);
-            }
-        }
-    }
-
-    private void initializeRuleMap(){
-        ruleMap = new HashMap<>();
-        for (int i = 0; i < rules.size(); i++) {
-            int lhs = rules.get(i).lhs().getId();
-            var map = ruleMap.getOrDefault(lhs, new ArrayList<>());
-            map.add(i);
-            ruleMap.put(lhs, map);
-        }
-    }
 
     public record parentItemChildId(LRItemBase parentItem, int childId){}
 
