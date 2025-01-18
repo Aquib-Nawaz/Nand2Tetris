@@ -1,8 +1,8 @@
 package Parser;
 
+import Parser.Exceptions.ParsingException;
 import Parser.Exceptions.ShiftReduceException;
 
-import java.net.PasswordAuthentication;
 import java.util.*;
 
 
@@ -13,7 +13,7 @@ public abstract class LRBase {
     private List<HashMap<String, Integer>>parsingTable;
     protected HashSet<Integer> acceptingStates;
     protected List<Map<String, Integer>> reduceStates;
-    public LRBase(List<Rule> rules) throws ShiftReduceException {
+    public LRBase(List<Rule> rules)  {
         if(rules == null || rules.isEmpty()) return;
         this.rules = rules;
         this.rules.add(new Rule(new Symbol("S'", false),
@@ -80,7 +80,7 @@ public abstract class LRBase {
 
     public record LRBaseState(HashSet<LRItemBase> state, int id){}
 
-    public void createParisngTable() throws ShiftReduceException {
+    public void createParisngTable() throws ParsingException {
         parsingTable = new ArrayList<>();
         Map<HashSet<LRItemBase>, Integer> states = new HashMap<>();
         reduceStates = new ArrayList<>();
@@ -102,42 +102,37 @@ public abstract class LRBase {
             curStateId = curStateRecord.id;
             var parsingTableRow = new HashMap<String, Integer>();
             var reduceRow = new HashMap<String, Integer>();
-            if(!checkIfReduce(curState, curStateId, reduceRow)){
-                for(LRItemBase item: curState){
-                    var rule = rules.get(item.ruleNum());
-                    var pos = item.pos();
-
-                    var next = rule.rhs().get(pos);
-                    if(next.isTerminal() && Objects.equals(next.toString(), "$")) {
-                        acceptingStates.add(curStateId);
-                        continue;
-                    }
-                    var newState = goTo(curState, next);
-                    int newStateId = states.getOrDefault(newState, -1);
-                    if(newStateId == -1){
-                        newStateId = states.size();
-                        toExplore.add(new LRBaseState(newState, newStateId));
-                        states.put(newState, states.size());
-                    }
-                    parsingTableRow.put(next.toString(), newStateId);
+            for(LRItemBase item: curState){
+                var rule = rules.get(item.ruleNum());
+                var pos = item.pos();
+                if(pos == rule.rhs().size()) {
+                    item.putReduceState(reduceRow, curState);
+                    continue;
                 }
+                var next = rule.rhs().get(pos);
+                if(next.isTerminal() && Objects.equals(next.toString(), "$")) {
+                    acceptingStates.add(curStateId);
+                    continue;
+                }
+                var newState = goTo(curState, next);
+                int newStateId = states.getOrDefault(newState, -1);
+                if(newStateId == -1){
+                    newStateId = states.size();
+                    toExplore.add(new LRBaseState(newState, newStateId));
+                    states.put(newState, states.size());
+                }
+                parsingTableRow.put(next.toString(), newStateId);
             }
+            checkException(parsingTableRow, reduceRow, curState);
             parsingTable.add(parsingTableRow);
             reduceStates.add(reduceRow);
         }
     }
 
-    protected abstract LRItemBase getInitialItem();
+    protected abstract void checkException(HashMap<String, Integer> parsingTableRow,
+                                           HashMap<String, Integer> reduceRow, HashSet<LRItemBase> curState) throws ParsingException;
 
-    private boolean checkIfReduce(HashSet<LRItemBase> curState, int curStateId, HashMap<String, Integer> reduceTableRow) {
-        var item = curState.iterator().next();
-        var pos = item.pos();
-        var rule = rules.get(item.ruleNum());
-        if(pos == rule.rhs().size()) {
-            return item.putReduceState(reduceTableRow);
-        }
-        return false;
-    }
+    protected abstract LRItemBase getInitialItem();
 
     public List<HashMap<String, Integer>> getTable(){return parsingTable;}
 

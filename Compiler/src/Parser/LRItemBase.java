@@ -1,6 +1,9 @@
 package Parser;
 
+import Parser.Exceptions.ParsingException;
+
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class LRItemBase {
 
@@ -28,9 +31,10 @@ public class LRItemBase {
         return new LRItemBase(ruleNum, pos + 1);
     }
 
-    public boolean putReduceState( HashMap<String, Integer> reduceTableRow) {
+    public void putReduceState(HashMap<String, Integer> reduceTableRow,
+                               HashSet<LRItemBase> curState)
+    throws ParsingException {
         reduceTableRow.put("<all>", ruleNum);
-        return true;
     }
 
     @Override

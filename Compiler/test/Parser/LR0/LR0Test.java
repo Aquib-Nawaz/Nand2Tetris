@@ -1,5 +1,6 @@
 package Parser.LR0;
 
+import Parser.Exceptions.ParsingException;
 import Parser.Exceptions.ShiftReduceException;
 import Parser.LRItemBase;
 import Parser.Rule;
@@ -61,13 +62,13 @@ public class LR0Test extends TestCase {
         assertEquals(state, newState);
     }
 
-    public void testCreateParsingTable() throws ShiftReduceException {
+    public void testCreateParsingTable() throws ParsingException {
         lr0.createParisngTable();
         var table = lr0.getTable();
         assertEquals(9, table.size());
     }
 
-    public void testParse() throws ShiftReduceException {
+    public void testParse() throws ParsingException {
         Token x = new Token("x"), lp  = new Token("("), rp = new Token(")"),
         comma = new Token(",");
         var sentence = List.of(lp,x,comma,x,rp );

@@ -50,7 +50,8 @@ public class ParserUtilityTest extends TestCase {
         assertTrue(followSet.get(1).contains("$"));
         assertTrue(followSet.get(1).contains(","));
         assertTrue(followSet.get(1).contains(")"));
-        assertTrue(followSet.get(2).contains(")"));
         assertTrue(followSet.get(3).contains(")"));
+        assertEquals(followSet.get(3).size(), 1);
+        assertEquals(followSet.get(2), followSet.get(3));
     }
 }

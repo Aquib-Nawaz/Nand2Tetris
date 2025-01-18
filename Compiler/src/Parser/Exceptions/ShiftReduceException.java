@@ -1,12 +1,12 @@
 package Parser.Exceptions;
 
-import Parser.LR0.LR0Item;
+import Parser.LRItemBase;
 
 import java.util.HashSet;
 
-public class ShiftReduceException extends Exception {
+public class ShiftReduceException extends ParsingException {
 
-    public ShiftReduceException(HashSet<LR0Item> state) {
-        super("Shift Reduce Exception: " + state);
+    public ShiftReduceException(HashSet<LRItemBase> curState) {
+        super("Shift Reduce Exception: " + curState);
     }
 }
