@@ -8,20 +8,22 @@ import java.util.ArrayList;
 
 public class ParserUtility {
     private static HashSet<String> dfsFirst(Symbol symbol, boolean[] vis, List<Rule> rules,
-                                     List< HashSet<String>> first, HashMap<Integer, List<Integer>> ruleMap) {
-        if(symbol.isTerminal()) return new HashSet<>(List.of(symbol.toString()));
+                                     List< HashSet<String>> first, List<List<Integer>> ruleMap) {
+        if(symbol.isTerminal())
+            return new HashSet<>(List.of(symbol.toString()));
         var symbolId = symbol.getId();
-        if(vis[symbolId]) return first.get(symbolId);
+        if(vis[symbolId])
+            return first.get(symbolId);
         vis[symbolId] = true;
         HashSet<String> ret = new HashSet<>();
-        for (int i : ruleMap.getOrDefault(symbolId, new ArrayList<>())) {
+        for (int i : ruleMap.get(symbolId)) {
             ret.addAll(dfsFirst(rules.get(i).rhs().getFirst(), vis, rules, first, ruleMap));
         }
         first.set(symbolId, ret);
         return ret;
     }
     public static List<HashSet<String>> getFirstSet(List<Rule> rules,
-                                                                HashMap<Integer, List<Integer>> ruleMap, int nonTerminals) {
+                                                                List<List<Integer>> ruleMap, int nonTerminals) {
         List<HashSet<String>> firstSet = new ArrayList<>();
         boolean [] vis = new boolean[nonTerminals];
 
@@ -39,7 +41,11 @@ public class ParserUtility {
     public static List <HashSet<String>> getFollowSet(List<Rule> rules, List <List<Integer>> ruleMap, int nonTerminals,
                                                                  List< HashSet<String>> firstSet) {
         List <HashSet<String>> followSet = new ArrayList<>(nonTerminals);
-        HashSet<Integer> vis = new HashSet<>();
+        HashSet<Integer> toFollow = new HashSet<>();
+        for (int i = 0; i < nonTerminals; i++) {
+            followSet.add(new HashSet<>());
+            toFollow.add(i);
+        }
 
         for(Rule rule: rules){
             var rhs = rule.rhs();
@@ -48,12 +54,29 @@ public class ParserUtility {
                 if(symbol.isTerminal()) continue;
                 var symbolId = symbol.getId();
                 var next = rhs.get(i+1);
+                var currFollow = followSet.get(symbolId);
                 if(next.isTerminal()) {
-                    followSet.set(symbolId, new HashSet<>(List.of(next.toString())));
+                    currFollow.add(next.toString());
                 }
                 else{
-
+                    currFollow.addAll(firstSet.get(next.getId()));
                 }
+            }
+        }
+
+        while(!toFollow.isEmpty()){
+            var next = toFollow.iterator().next();
+            toFollow.remove(next);
+
+            for (int i : ruleMap.get(next)) {
+                var rule = rules.get(i);
+                var lastSymbol = rule.rhs().getLast();
+                if(lastSymbol.isTerminal()) continue;
+                var rhsId = lastSymbol.getId();
+                var follow = followSet.get(next);
+                var rhsFollow = followSet.get(rhsId);
+                if(rhsFollow.addAll(follow))
+                    toFollow.add(rhsId);
             }
         }
         return followSet;
