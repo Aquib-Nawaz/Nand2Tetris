@@ -16,11 +16,22 @@ public class LR0Item extends LRItemBase {
 
     @Override
     public void putReduceState(HashMap<String, Integer> reduceTableRow,
-                               HashSet<LRItemBase> curState)
+                               HashSet<LRItemBase> curState, HashSet<String>followSet)
         throws ParsingException {
         if(reduceTableRow.isEmpty())
             reduceTableRow.put("<all>", ruleNum);
         else
             throw new ReduceReduceException(curState);
     }
+
+    @Override
+    public LRItemBase getChildItem(int i) {
+        return new LR0Item(i, 0);
+    }
+
+    @Override
+    public LRItemBase getGoToItem() {
+        return new LR0Item(ruleNum, pos + 1);
+    }
+
 }

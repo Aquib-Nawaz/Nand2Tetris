@@ -5,7 +5,7 @@ import Parser.Exceptions.ParsingException;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class LRItemBase {
+public abstract class LRItemBase {
 
     protected int ruleNum;
     protected int pos;
@@ -23,19 +23,13 @@ public class LRItemBase {
         return pos;
     }
 
-    public LRItemBase getChildItem(int i) {
-        return new LRItemBase(i, 0);
-    }
+    public abstract LRItemBase getChildItem(int i);
 
-    public LRItemBase getGoToItem() {
-        return new LRItemBase(ruleNum, pos + 1);
-    }
+    public abstract LRItemBase getGoToItem();
 
-    public void putReduceState(HashMap<String, Integer> reduceTableRow,
-                               HashSet<LRItemBase> curState)
-    throws ParsingException {
-        reduceTableRow.put("<all>", ruleNum);
-    }
+    public abstract void putReduceState(HashMap<String, Integer> reduceTableRow,
+                               HashSet<LRItemBase> curState, HashSet<String>followSet)
+    throws ParsingException;
 
     @Override
     public boolean equals(Object obj) {

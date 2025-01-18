@@ -1,7 +1,6 @@
 package Parser;
 
 import Parser.Exceptions.ParsingException;
-import Parser.Exceptions.ShiftReduceException;
 
 import java.util.*;
 
@@ -13,6 +12,19 @@ public abstract class LRBase {
     private List<HashMap<String, Integer>>parsingTable;
     protected HashSet<Integer> acceptingStates;
     protected List<Map<String, Integer>> reduceStates;
+
+    List<HashSet<String>> firstSet;
+    private List<HashSet<String>> followSet;
+
+    protected void computeFirstSet(){
+        this.firstSet = ParserUtility.getFirstSet(rules, ruleMap, nonTerminals);
+    }
+
+    protected void computeFollowSet(){
+        computeFirstSet();
+        this.followSet = ParserUtility.getFollowSet(rules, ruleMap, nonTerminals, firstSet);
+    }
+
     public LRBase(List<Rule> rules)  {
         if(rules == null || rules.isEmpty()) return;
         this.rules = rules;
@@ -23,7 +35,6 @@ public abstract class LRBase {
         ruleMap = ParserUtility.initializeRuleMap(rules, nonTerminals);
 //        createParisngTable();
     }
-
 
     public record parentItemChildId(LRItemBase parentItem, int childId){}
 
@@ -70,6 +81,7 @@ public abstract class LRBase {
         for(LRItemBase item: items){
             var rule = rules.get(item.ruleNum());
             var pos = item.pos();
+            if(pos==rule.rhs().size()) continue;
             var next = rule.rhs().get(pos);
             if(Objects.equals(next.toString(), token.toString())){
                 ret.add(item.getGoToItem());
@@ -95,7 +107,7 @@ public abstract class LRBase {
         Queue<LRBaseState> toExplore = new LinkedList<>();
 
         toExplore.add(new LRBaseState(curState,0));
-
+        boolean computeFollow = this.followSet != null;
         while(!toExplore.isEmpty()){
             var curStateRecord = toExplore.remove();
             curState = curStateRecord.state;
@@ -106,7 +118,7 @@ public abstract class LRBase {
                 var rule = rules.get(item.ruleNum());
                 var pos = item.pos();
                 if(pos == rule.rhs().size()) {
-                    item.putReduceState(reduceRow, curState);
+                    item.putReduceState(reduceRow, curState, computeFollow ? followSet.get(rule.lhs().getId()) : null);
                     continue;
                 }
                 var next = rule.rhs().get(pos);

@@ -11,7 +11,7 @@ import java.util.List;
 
 public class LR0 extends LRBase {
 
-    public LR0(List<Rule> rules) throws ShiftReduceException {
+    public LR0(List<Rule> rules) {
         super(rules);
     }
 
