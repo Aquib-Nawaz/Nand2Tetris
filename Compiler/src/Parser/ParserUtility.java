@@ -1,6 +1,5 @@
 package Parser;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
@@ -13,22 +12,29 @@ public class ParserUtility {
         for (int i = 0; i < nonTerminals; i++) {
             firstSet.add(new HashSet<>());
         }
-        boolean change;
+        HashSet<Integer> isChanged = new HashSet<>();
         do{
-            change=false;
+            HashSet<Integer> isChangedCurr = new HashSet<>();
             for(Rule rule: rules){
                 var rhs = rule.rhs().getFirst();
                 var lhs = rule.lhs();
                 var lhsFirst = firstSet.get(lhs.getId());
+                boolean curChange=false;
                 if(rhs.isTerminal()){
-                    change |= lhsFirst.add(rhs.toString());
+                    curChange = lhsFirst.add(rhs.toString());
                 }
-                else{
+                else if(isChanged.contains(rhs.getId())){
                     var rhsFirst = firstSet.get(rhs.getId());
-                    change |= lhsFirst.addAll(rhsFirst);
+                    curChange = lhsFirst.addAll(rhsFirst);
+                }
+
+                if(curChange) {
+                    isChanged.add(lhs.getId());
+                    isChangedCurr.add(lhs.getId());
                 }
             }
-        }while (change);
+            isChanged = isChangedCurr;
+        }while (!isChanged.isEmpty());
         return firstSet;
     }
 
