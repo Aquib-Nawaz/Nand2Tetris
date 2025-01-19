@@ -18,7 +18,7 @@ public abstract class LRBase {
     private List<HashSet<String>> followSet;
 
     protected void computeFirstSet(){
-        this.firstSet = ParserUtility.getFirstSet(rules, ruleMap, nonTerminals);
+        this.firstSet = ParserUtility.getFirstSet(rules, nonTerminals);
     }
 
     protected void computeFollowSet(){

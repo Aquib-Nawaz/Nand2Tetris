@@ -7,34 +7,28 @@ import java.util.ArrayList;
 
 
 public class ParserUtility {
-    private static HashSet<String> dfsFirst(Symbol symbol, boolean[] vis, List<Rule> rules,
-                                     List< HashSet<String>> first, List<List<Integer>> ruleMap) {
-        if(symbol.isTerminal())
-            return new HashSet<>(List.of(symbol.toString()));
-        var symbolId = symbol.getId();
-        if(vis[symbolId])
-            return first.get(symbolId);
-        vis[symbolId] = true;
-        HashSet<String> ret = new HashSet<>();
-        for (int i : ruleMap.get(symbolId)) {
-            ret.addAll(dfsFirst(rules.get(i).rhs().getFirst(), vis, rules, first, ruleMap));
-        }
-        first.set(symbolId, ret);
-        return ret;
-    }
-    public static List<HashSet<String>> getFirstSet(List<Rule> rules,
-                                                                List<List<Integer>> ruleMap, int nonTerminals) {
+
+    public static List<HashSet<String>> getFirstSet(List<Rule> rules, int nonTerminals) {
         List<HashSet<String>> firstSet = new ArrayList<>();
-        boolean [] vis = new boolean[nonTerminals];
-
         for (int i = 0; i < nonTerminals; i++) {
-            firstSet.add(null); vis[i] = false;
+            firstSet.add(new HashSet<>());
         }
-
-        for (int i = 0; i < rules.size(); i++) {
-            var symbol = rules.get(i).lhs();
-            dfsFirst(symbol, vis, rules, firstSet, ruleMap);
-        }
+        boolean change;
+        do{
+            change=false;
+            for(Rule rule: rules){
+                var rhs = rule.rhs().getFirst();
+                var lhs = rule.lhs();
+                var lhsFirst = firstSet.get(lhs.getId());
+                if(rhs.isTerminal()){
+                    change |= lhsFirst.add(rhs.toString());
+                }
+                else{
+                    var rhsFirst = firstSet.get(rhs.getId());
+                    change |= lhsFirst.addAll(rhsFirst);
+                }
+            }
+        }while (change);
         return firstSet;
     }
 

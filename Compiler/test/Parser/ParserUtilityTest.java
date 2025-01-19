@@ -29,8 +29,7 @@ public class ParserUtilityTest extends TestCase {
 
     public void testGetFirstSet() {
         int nonTerminals = 4;
-        var ruleMap = ParserUtility.initializeRuleMap(rules, nonTerminals);
-        var firstSet = ParserUtility.getFirstSet(rules, ruleMap, nonTerminals);
+        var firstSet = ParserUtility.getFirstSet(rules, nonTerminals);
         assertEquals(firstSet.get(0), firstSet.get(1));
         assertEquals(firstSet.get(0), firstSet.get(2));
         assertEquals(firstSet.getFirst().size(), 2);
@@ -43,7 +42,7 @@ public class ParserUtilityTest extends TestCase {
     public void testGetFollowSet() {
         int nonTerminals = 4;
         var ruleMap = ParserUtility.initializeRuleMap(rules, nonTerminals);
-        var firstSet = ParserUtility.getFirstSet(rules, ruleMap, nonTerminals);
+        var firstSet = ParserUtility.getFirstSet(rules, nonTerminals);
         var followSet = ParserUtility.getFollowSet(rules, ruleMap, nonTerminals, firstSet);
         assertTrue(followSet.getFirst().isEmpty());
         assertEquals(followSet.get(1).size(), 3);
