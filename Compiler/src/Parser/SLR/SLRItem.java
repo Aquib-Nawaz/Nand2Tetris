@@ -16,9 +16,9 @@ public class SLRItem  extends LRItemBase {
                                HashSet<LRItemBase> curState, HashSet<String>followSet)
         throws ReduceReduceException {
         for(String s: followSet){
-            if(reduceTableRow.containsKey(s))
+            var prev = reduceTableRow.put(s, ruleNum);
+            if(prev != null)
                 throw new ReduceReduceException(curState);
-            reduceTableRow.put(s, ruleNum);
         }
     }
 

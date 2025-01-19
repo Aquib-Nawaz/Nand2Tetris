@@ -1,6 +1,7 @@
 package Parser;
 
 import Parser.Exceptions.ParsingException;
+import Parser.Exceptions.ShiftReduceException;
 
 import java.util.*;
 
@@ -41,7 +42,8 @@ public abstract class LRBase {
     public HashSet<LRItemBase> closure(Collection<LRItemBase> items){
         if(items == null || items.isEmpty()) return new HashSet<>();
         Queue<parentItemChildId> toExplore = new LinkedList<>();
-        HashSet<Integer> vis = new HashSet<>();
+
+        HashSet<parentItemChildId> vis = new HashSet<>();
         var ret = new ArrayList<LRItemBase>();
         for(LRItemBase item: items){
             var pos = item.pos();
@@ -51,9 +53,10 @@ public abstract class LRBase {
             if(pos < rule.size()){
                 var next = rule.get(pos);
                 var nextId = next.getId();
-                if(next.isTerminal()||vis.contains(nextId)) continue;
-                toExplore.add(new parentItemChildId(item, nextId));
-                vis.add(nextId);
+                var parentChild = new parentItemChildId(item, nextId);
+                if(next.isTerminal() || vis.contains(parentChild)) continue;
+                toExplore.add(parentChild);
+                vis.add(parentChild);
             }
         }
         while(!toExplore.isEmpty()){
@@ -63,9 +66,10 @@ public abstract class LRBase {
                 ret.add(currItem);
                 var child = rules.get(i).rhs().getFirst();
                 var childId = child.getId();
-                if(!child.isTerminal() && !vis.contains(childId)){
-                    toExplore.add(new parentItemChildId(currItem, childId));
-                    vis.add(childId);
+                var parentChild = new parentItemChildId(currItem, childId);
+                if(!child.isTerminal() && !vis.contains(parentChild)){
+                    toExplore.add(parentChild);
+                    vis.add(parentChild);
                 }
             }
         }
@@ -142,8 +146,13 @@ public abstract class LRBase {
         }
     }
 
-    protected abstract void checkException(HashMap<String, Integer> parsingTableRow,
-                                           HashMap<String, Integer> reduceRow, HashSet<LRItemBase> curState) throws ParsingException;
+    protected void checkException(HashMap<String, Integer> parsingTableRow,
+                                           HashMap<String, Integer> reduceRow, HashSet<LRItemBase> curState) throws ParsingException{
+        for(String s: parsingTableRow.keySet()){
+            if(reduceRow.containsKey(s))
+                throw new ShiftReduceException(curState);
+        }
+    }
 
     protected abstract LRItemBase getInitialItem();
 

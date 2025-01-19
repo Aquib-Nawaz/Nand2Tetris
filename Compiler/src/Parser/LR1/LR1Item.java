@@ -1,6 +1,6 @@
 package Parser.LR1;
 
-import Parser.Exceptions.ParsingException;
+import Parser.Exceptions.ReduceReduceException;
 import Parser.LRItemBase;
 
 import java.util.HashMap;
@@ -16,14 +16,17 @@ public class LR1Item extends LRItemBase {
 
     @Override
     public LRItemBase getGoToItem() {
-        assert pos < nextSet.size();
         return new LR1Item(ruleNum, pos + 1, nextSet);
     }
 
     @Override
     public void putReduceState(HashMap<String, Integer> reduceTableRow, HashSet<LRItemBase> curState,
-                               HashSet<String> followSet) throws ParsingException {
-
+                               HashSet<String> followSet) throws ReduceReduceException {
+        for(var next : nextSet){
+            var prev = reduceTableRow.put(next, ruleNum);
+            if(prev!= null)
+                throw new ReduceReduceException(curState);
+        }
     }
 
     public HashSet<String> getNextSet() {

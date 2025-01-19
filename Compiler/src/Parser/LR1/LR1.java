@@ -1,6 +1,5 @@
 package Parser.LR1;
 
-import Parser.Exceptions.ParsingException;
 import Parser.LRBase;
 import Parser.LRItemBase;
 import Parser.Rule;
@@ -13,12 +12,6 @@ public class LR1 extends LRBase {
     public LR1(List<Rule> rules) {
         super(rules);
         computeFirstSet();
-    }
-
-    @Override
-    protected void checkException(HashMap<String, Integer> parsingTableRow, HashMap<String, Integer> reduceRow,
-                                  HashSet<LRItemBase> curState) throws ParsingException {
-
     }
 
     @Override
