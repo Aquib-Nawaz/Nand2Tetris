@@ -16,12 +16,32 @@ public class LR1Item extends LRItemBase {
 
     @Override
     public LRItemBase getGoToItem() {
-        return null;
+        assert pos < nextSet.size();
+        return new LR1Item(ruleNum, pos + 1, nextSet);
     }
 
     @Override
     public void putReduceState(HashMap<String, Integer> reduceTableRow, HashSet<LRItemBase> curState,
                                HashSet<String> followSet) throws ParsingException {
 
+    }
+
+    public HashSet<String> getNextSet() {
+        return nextSet;
+    }
+
+    public void addFollowSet(LR1Item item){
+        nextSet.addAll(item.getNextSet());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == this) return true;
+        if(!(obj instanceof LR1Item other)) return false;
+        return ruleNum == other.ruleNum && pos == other.pos && nextSet.equals(other.getNextSet());
+    }
+    @Override
+    public int hashCode() {
+        return ruleNum * 31 * 31 + pos * 31 + nextSet.hashCode();
     }
 }

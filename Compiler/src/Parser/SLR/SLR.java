@@ -35,4 +35,9 @@ public class SLR extends LRBase {
     public LRItemBase getItemForClosure(LRItemBase item, int ruleNum) {
         return new SLRItem(ruleNum, 0);
     }
+
+    @Override
+    public HashSet<LRItemBase> mergeClosureListIntoHashSet(List<LRItemBase> list) {
+        return new HashSet<>(list);
+    }
 }

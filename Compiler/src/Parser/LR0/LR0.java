@@ -35,5 +35,10 @@ public class LR0 extends LRBase {
         return new LR0Item(ruleNum, 0);
     }
 
+    @Override
+    public HashSet<LRItemBase> mergeClosureListIntoHashSet(List<LRItemBase> list) {
+        return new HashSet<>(list);
+    }
+
 
 }

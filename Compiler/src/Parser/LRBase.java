@@ -59,16 +59,17 @@ public abstract class LRBase {
         while(!toExplore.isEmpty()){
             var next = toExplore.remove();
             for (int i : ruleMap.get(next.childId)) {
-                ret.add(getItemForClosure(next.parentItem, i));
+                var currItem = getItemForClosure(next.parentItem(), i);
+                ret.add(currItem);
                 var child = rules.get(i).rhs().getFirst();
                 var childId = child.getId();
                 if(!child.isTerminal() && !vis.contains(childId)){
-                    toExplore.add(new parentItemChildId(next.parentItem(), childId));
+                    toExplore.add(new parentItemChildId(currItem, childId));
                     vis.add(childId);
                 }
             }
         }
-        return new HashSet<>(ret);
+        return mergeClosureListIntoHashSet(ret);
     }
 
     public int getNumNonTerminals(){
@@ -148,6 +149,7 @@ public abstract class LRBase {
 
     public abstract LRItemBase getItemForClosure(LRItemBase item, int ruleNum);
 
+    public abstract HashSet<LRItemBase> mergeClosureListIntoHashSet(List<LRItemBase> list);
     public List<HashMap<String, Integer>> getTable(){return parsingTable;}
 
     private boolean tryReduce(Token token, int curState, Stack<Integer> stack) {
@@ -184,5 +186,11 @@ public abstract class LRBase {
 
         if(tryReduce(new Token("$") ,curState, stack)) return false;
         return acceptingStates.contains(stack.peek());
+    }
+
+    protected HashSet<String> getFirstSet(Symbol symbol){
+        if(symbol.isTerminal()) return new HashSet<>(List.of(symbol.toString()));
+        assert firstSet != null;
+        return firstSet.get(symbol.getId());
     }
 }
