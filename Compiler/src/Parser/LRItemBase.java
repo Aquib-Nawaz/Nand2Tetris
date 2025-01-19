@@ -23,7 +23,6 @@ public abstract class LRItemBase {
         return pos;
     }
 
-    public abstract LRItemBase getChildItem(int i);
 
     public abstract LRItemBase getGoToItem();
 

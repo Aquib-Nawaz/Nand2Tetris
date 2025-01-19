@@ -30,4 +30,9 @@ public class SLR extends LRBase {
     protected LRItemBase getInitialItem() {
         return new SLRItem(rules.size()-1, 0);
     }
+
+    @Override
+    public LRItemBase getItemForClosure(LRItemBase item, int ruleNum) {
+        return new SLRItem(ruleNum, 0);
+    }
 }

@@ -30,5 +30,10 @@ public class LR0 extends LRBase {
         return new LR0Item(rules.size() - 1, 0);
     }
 
+    @Override
+    public LRItemBase getItemForClosure(LRItemBase item, int ruleNum) {
+        return new LR0Item(ruleNum, 0);
+    }
+
 
 }

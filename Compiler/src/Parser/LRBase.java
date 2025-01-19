@@ -59,7 +59,7 @@ public abstract class LRBase {
         while(!toExplore.isEmpty()){
             var next = toExplore.remove();
             for (int i : ruleMap.get(next.childId)) {
-                ret.add(next.parentItem.getChildItem(i));
+                ret.add(getItemForClosure(next.parentItem, i));
                 var child = rules.get(i).rhs().getFirst();
                 var childId = child.getId();
                 if(!child.isTerminal() && !vis.contains(childId)){
@@ -145,6 +145,8 @@ public abstract class LRBase {
                                            HashMap<String, Integer> reduceRow, HashSet<LRItemBase> curState) throws ParsingException;
 
     protected abstract LRItemBase getInitialItem();
+
+    public abstract LRItemBase getItemForClosure(LRItemBase item, int ruleNum);
 
     public List<HashMap<String, Integer>> getTable(){return parsingTable;}
 

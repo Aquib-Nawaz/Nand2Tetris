@@ -23,11 +23,6 @@ public class SLRItem  extends LRItemBase {
     }
 
     @Override
-    public LRItemBase getChildItem(int i) {
-        return new SLRItem(i, 0);
-    }
-
-    @Override
     public LRItemBase getGoToItem() {
         return new SLRItem(ruleNum, pos + 1);
     }
