@@ -16,6 +16,7 @@ public abstract class LRBase {
 
     List<HashSet<String>> firstSet;
     private List<HashSet<String>> followSet;
+    HashMap<String , Integer> precedenceList;
 
     protected void computeFirstSet(){
         this.firstSet = ParserUtility.getFirstSet(rules, nonTerminals);
@@ -27,6 +28,14 @@ public abstract class LRBase {
     }
 
     public LRBase(List<Rule> rules)  {
+        initialize(rules);
+        this.precedenceList = new HashMap<>();
+    }
+
+    public void setPrecedenceList( HashMap<String , Integer> precedenceList) {
+        this.precedenceList = precedenceList;
+    }
+    private void initialize(List<Rule> rules) {
         if(rules == null || rules.isEmpty()) return;
         this.rules = rules;
         this.rules.add(new Rule(new Symbol("S'", false),
@@ -34,7 +43,6 @@ public abstract class LRBase {
         this.rules.getLast().lhs().setId(0);
         nonTerminals = ParserUtility.initializeId(rules);
         ruleMap = ParserUtility.initializeRuleMap(rules, nonTerminals);
-//        createParisngTable();
     }
 
     public record parentItemChildId(LRItemBase parentItem, int childId){}
@@ -140,9 +148,38 @@ public abstract class LRBase {
                 }
                 parsingTableRow.put(next.toString(), newStateId);
             }
+            removeShiftReduceExceptions(parsingTableRow, reduceRow);
             checkException(parsingTableRow, reduceRow, curState);
             parsingTable.add(parsingTableRow);
             reduceStates.add(reduceRow);
+        }
+    }
+
+    private void removeShiftReduceExceptions(HashMap<String, Integer> shiftRow, HashMap<String, Integer> reduceRow) {
+        for(String s: shiftRow.keySet()){
+            var shiftPrecedence = precedenceList.get(s);
+            if(shiftPrecedence == null) continue;
+            if(reduceRow.containsKey(s)){
+                var rule = rules.get(reduceRow.get(s));
+                Integer reducePrecedence = rule.prec();
+                if(reducePrecedence==null){
+                    var ruleRhs = rule.rhs();
+                    int i= ruleRhs.size()-1;
+                    while(i>=0 && !ruleRhs.get(i).isTerminal())i--;
+                    if(i<0) continue;
+                    reducePrecedence = precedenceList.get(ruleRhs.get(i).toString());
+                }
+                if(reducePrecedence == null)
+                    continue;
+                if(shiftPrecedence > reducePrecedence || (shiftPrecedence.equals(reducePrecedence) &&
+                        shiftPrecedence%3==0)){
+                    reduceRow.remove(s);
+                }
+                else if(shiftPrecedence < reducePrecedence || (
+                        shiftPrecedence%3==2)){
+                    shiftRow.remove(s);
+                }
+            }
         }
     }
 
