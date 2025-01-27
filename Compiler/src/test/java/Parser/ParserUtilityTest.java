@@ -1,14 +1,14 @@
 package Parser;
 
 
+import javolution.io.Union;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ParserUtilityTest {
     List<Rule>rules;
@@ -58,5 +58,19 @@ public class ParserUtilityTest {
         assertTrue(followSet.get(3).contains(")"));
         assertEquals(followSet.get(3).size(), 1);
         assertEquals(followSet.get(2), followSet.get(3));
+    }
+    class Value extends Union{
+        Signed32 asInt = new Signed32();
+        String asString = "";
+    }
+
+    @Test
+    public void testUnion() {
+        Value v = new Value();
+        v.asInt.set(10);
+        assertEquals(10, v.asInt.get());
+
+        v.asString = "hello";
+        assertEquals("hello", v.asString);
     }
 }

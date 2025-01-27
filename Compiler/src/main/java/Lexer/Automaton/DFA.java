@@ -1,7 +1,7 @@
 package Lexer.Automaton;
 
-import scanner.Automaton;
-import scanner.NextTransition;
+import Scanner.Automaton;
+import Scanner.NextTransition;
 
 import java.util.*;
 
