@@ -1,91 +1,52 @@
 # Nand2Tetris Full Course Solution
 
-This repository contains a complete, from-scratch solution to the [Nand2Tetris](https://www.nand2tetris.org/) course, implemented in Java and organized as Gradle projects. It covers all major components, from hardware description to assembler, virtual machine, and compiler.
+This repository contains a comprehensive, Java-based solution to the [Nand2Tetris](https://www.nand2tetris.org/) course (The Elements of Computing Systems), which guides learners through building a modern computer system from first principles, starting with basic logic gates and culminating in a working computer with a compiler and operating system.
 
----
+## About Nand2Tetris
 
-## Project Structure
+Nand2Tetris is a project-based course that takes you on a journey through all the major layers of computer systems. You begin by constructing simple hardware components in HDL, progress to building a CPU and a virtual machine, and finally develop a compiler for a high-level programming language (Jack).
+
+The course is structured as a series of projects:
+- **Chapters 1–5:** Digital logic, building up from basic gates (NAND) to the ALU and computer architecture, implemented in HDL.
+- **Chapters 6–7:** Writing an assembler to translate Hack assembly to binary machine code.
+- **Chapters 7–8:** Building a virtual machine translator that converts stack-based VM code into Hack assembly.
+- **Chapters 9–11:** Developing a compiler that translates the Jack language into VM commands.
+
+## Repository Structure
 
 - **hardware/**  
-  Solutions for hardware components (Chapters 1–5), written in HDL.
-
+  HDL solutions for Chapters 1–5, including logic gates, ALU, memory, and CPU design.
 - **Assembler/**  
-  Converts Hack assembly language to binary machine code.  
-  **Usage:**  
-  ```sh
-  gradle run --args="path/to/file.asm"
-  ```
-
+  Java implementation of the Hack assembler (Chapter 6), converting `.asm` to `.hack` binary files.
 - **VMtranslator/**  
-  Translates VM code to Hack machine code.  
-  **Usage:**  
-  ```sh
-  gradle run --args="path/to/fileOrDirectory"
-  ```
-
+  Java implementation of the VM-to-Hack translator (Chapters 7–8), handling both arithmetic and memory access commands.
 - **Compiler/**  
-  Compiles Jack source code (Hack high-level language) to VM code.  
-  **Usage:**  
-  (From the `Compiler` directory)  
-  ```sh
-  gradle test
-  ```
+  Java implementation of the Jack compiler (Chapters 9–11), translating `.jack` high-level code to VM commands.
 
----
+## How to Use
 
-## Getting Started
+This repository uses Gradle for building and running Java code.  
+Requirements: **Java 8+**, **Gradle** (or use included Gradle wrapper).
 
-### Prerequisites
+- **Assembler:** Converts Hack assembly to binary machine code.
+  - `gradle run --args="path/to/file.asm"` (from `Assembler/` directory)
+- **VMtranslator:** Converts VM code (file or directory) to Hack assembly.
+  - `gradle run --args="path/to/fileOrFolder"` (from `VMtranslator/` directory)
+- **Compiler:** Compiles Jack code to VM code.
+  - `gradle test` (from `Compiler/` directory)
 
-- Java (JDK 8 or higher)
-- [Gradle](https://gradle.org/) (or use the included Gradle wrapper)
+## Learning Outcomes
 
-### Building the Projects
-
-Navigate to the desired project directory (`Assembler`, `VMtranslator`, or `Compiler`) and use:
-
-```sh
-gradle build
-```
-or, if using the Gradle wrapper:
-```sh
-./gradlew build
-```
-
-### Running
-
-See the **Project Structure** section above for details on running each component.
-
-#### Example: Running the Assembler
-
-```sh
-cd Assembler
-gradle run --args="path/to/Prog.asm"
-```
-
-#### Example: Running the VM Translator
-
-```sh
-cd VMtranslator
-gradle run --args="path/to/FolderOrFile"
-```
-
-#### Example: Running Compiler Tests
-
-```sh
-cd Compiler
-gradle test
-```
-
----
+- Understand digital logic and hardware design by building real components in HDL.
+- Gain insights into assembler design and machine code translation.
+- Learn about stack-based virtual machines and their implementation.
+- Develop a complete compiler for a custom high-level language.
 
 ## Credits
 
-- Course: [Nand2Tetris](https://www.nand2tetris.org/)
-- Solutions by [Aquib-Nawaz](https://github.com/Aquib-Nawaz)
-
----
+- Based on the [Nand2Tetris](https://www.nand2tetris.org/) course by Noam Nisan and Shimon Schocken.
+- Solutions by [Aquib-Nawaz](https://github.com/Aquib-Nawaz).
 
 ## License
 
-This project is for educational purposes. Please respect the Nand2Tetris academic integrity policy.
+For educational use only. Please respect the Nand2Tetris academic honesty policy.
